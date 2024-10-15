@@ -1,0 +1,39 @@
+#include <MD_Parola.h>
+#include <MD_MAX72XX.h>
+#include <SPI.h>
+
+// 하드웨어 설정
+#define HARDWARE_TYPE MD_MAX72XX::FC16_HW
+#define MAX_DEVICES 4  // 8x32 매트릭스이므로 8x8 모듈이 4개 필요
+
+#define CLK_PIN   13
+#define DATA_PIN  11
+#define CS_PIN    10
+
+MD_Parola myDisplay = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+char message[100] = "Hello";  // 기본 문자열
+
+void setup() {
+  Serial.begin(9600);
+  myDisplay.begin();
+  myDisplay.setIntensity(0);  // 밝기 설정 (0~15)
+  myDisplay.displayClear();
+
+  Serial.println("Enter a message to display:");  // 시리얼 모니터에 출력
+}
+
+void loop() {
+  // 시리얼 모니터에서 메시지 입력받기
+  if (Serial.available() > 0) {
+    int len = Serial.readBytesUntil('\n', message, sizeof(message) - 1);
+    message[len] = '\0';  // 문자열 종료 문자 추가
+    Serial.print("Received message: ");  // 시리얼 모니터에 받은 메시지 출력
+    Serial.println(message);  
+    myDisplay.displayClear();
+    myDisplay.displayText(message, PA_CENTER, 100, 1000, PA_SCROLL_LEFT, PA_SCROLL_LEFT);
+  }
+
+  if (myDisplay.displayAnimate()) {
+    myDisplay.displayReset();  // 애니메이션이 끝나면 반복
+  }
+}
